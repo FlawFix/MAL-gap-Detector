@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "MAL Gap Detector",
+  "version": "1.0",
+  "description": "Detect gaps between completed anime on your MyAnimeList profile.",
+  "icons": {
+    "128": "icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon128.png"
+  },
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://myanimelist.net/*"
+  ]
+}

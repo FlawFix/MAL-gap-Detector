@@ -1,0 +1,234 @@
+/* ── Reset & Base ─────────────────────────────────────── */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  width: 380px;
+  padding: 16px;
+  background: #0f1923;
+  color: #c5cdd8;
+  font-size: 13px;
+}
+
+/* ── Header ──────────────────────────────────────────── */
+header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+header .logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+}
+
+header h1 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #e8ecf1;
+  letter-spacing: -0.3px;
+}
+
+/* ── Controls ────────────────────────────────────────── */
+#controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.control-row {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.control-row label {
+  font-size: 11px;
+  color: #7a8a9e;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.control-row input,
+.control-row select {
+  background: #1a2634;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  color: #c5cdd8;
+  padding: 6px 8px;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.control-row input:focus,
+.control-row select:focus {
+  border-color: #2e7bea;
+}
+
+/* ── Buttons ─────────────────────────────────────────── */
+#actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+button {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+#analyze {
+  background: #2e7bea;
+  color: #fff;
+}
+
+#analyze:hover:not(:disabled) {
+  background: #3d8af5;
+}
+
+#download {
+  background: #1a2634;
+  color: #7ec8e3;
+  border: 1px solid rgba(126, 200, 227, 0.2);
+}
+
+#download:hover:not(:disabled) {
+  background: #24333f;
+}
+
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Spinner ─────────────────────────────────────────── */
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ── Status ──────────────────────────────────────────── */
+#status {
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+#status.error {
+  background: rgba(234, 68, 68, 0.12);
+  color: #f07070;
+  border: 1px solid rgba(234, 68, 68, 0.2);
+}
+
+#status.info {
+  background: rgba(46, 123, 234, 0.1);
+  color: #7eb8f0;
+  border: 1px solid rgba(46, 123, 234, 0.2);
+}
+
+#status.success {
+  background: rgba(46, 204, 113, 0.1);
+  color: #6ee0a0;
+  border: 1px solid rgba(46, 204, 113, 0.2);
+}
+
+/* ── Summary ─────────────────────────────────────────── */
+#summary {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+#summary span {
+  flex: 1;
+  background: #1a2634;
+  border-radius: 6px;
+  padding: 8px;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #7a8a9e;
+}
+
+#summary span strong {
+  display: block;
+  font-size: 16px;
+  color: #e8ecf1;
+  font-weight: 700;
+}
+
+/* ── Output ──────────────────────────────────────────── */
+pre {
+  max-height: 260px;
+  overflow: auto;
+  font-size: 11px;
+  font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  background: #111b25;
+  color: #8faabe;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.6;
+}
+
+pre:empty {
+  display: none;
+}
+
+/* ── Scrollbar ───────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}

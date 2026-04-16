@@ -269,3 +269,75 @@ downloadBtn.addEventListener("click", () => {
   // Clean up blob reference to avoid memory leak
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
+
+// ── Rating Calculator ───────────────────────────────────────────────
+
+const calcBtn = $("#calcRating");
+const resultEl = $("#rating-result");
+const ratingValueEl = $("#ratingValue");
+const ratingLabelEl = $("#ratingLabel");
+
+const ratingInputIds = ["rStory", "rCharacter", "rAnimation", "rSound", "rEnjoyment"];
+
+// Clamp each input to 0–10 as the user types
+ratingInputIds.forEach(id => {
+  const input = document.getElementById(id);
+  input.addEventListener("input", () => {
+    let v = parseInt(input.value, 10);
+    if (isNaN(v)) return;
+    if (v > 10) input.value = 10;
+    if (v < 0) input.value = 0;
+  });
+});
+
+/**
+ * Return a human-readable label for the final rating.
+ */
+function getRatingLabel(rating) {
+  if (rating >= 9) return "Masterpiece";
+  if (rating === 8) return "Great";
+  if (rating === 7) return "Good";
+  if (rating === 6) return "Fine";
+  if (rating === 5) return "Average";
+  if (rating === 4) return "Below Average";
+  if (rating === 3) return "Bad";
+  if (rating === 2) return "Terrible";
+  if (rating === 1) return "Appalling";
+  return "—";
+}
+
+/**
+ * Return CSS class suffix for the gradient tier.
+ * green = 7–10, yellow = 4–6, red = 1–3
+ */
+function getRatingTier(rating) {
+  if (rating >= 7) return "green";
+  if (rating >= 4) return "yellow";
+  return "red";
+}
+
+calcBtn.addEventListener("click", () => {
+  const values = ratingInputIds.map(id => {
+    const v = parseFloat(document.getElementById(id).value);
+    return isNaN(v) ? null : Math.max(0, Math.min(10, v));
+  });
+
+  // Validate – all five fields must have a value
+  if (values.some(v => v === null)) {
+    resultEl.className = ""; // remove hidden, show error state
+    resultEl.classList.add("rating-error");
+    ratingValueEl.textContent = "!";
+    ratingLabelEl.textContent = "Fill in all fields";
+    return;
+  }
+
+  const avg = values.reduce((a, b) => a + b, 0) / values.length;
+  const final = Math.round(avg); // ≥ .5 rounds up, < .5 rounds down
+
+  // Update result display
+  resultEl.className = ""; // reset all classes
+  resultEl.classList.add("rating-tier-" + getRatingTier(final));
+
+  ratingValueEl.textContent = final;
+  ratingLabelEl.textContent = `/ 10  ·  ${getRatingLabel(final)}`;
+});

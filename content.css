@@ -1,0 +1,55 @@
+/* ── MAL Gap Detector – Scroll Button Styles ────────────────────────
+   Styles for the floating scroll-to-top / scroll-to-bottom buttons
+   injected by content.js.  All selectors are prefixed with #mal-gap-
+   to avoid collisions with MAL's own styles.
+──────────────────────────────────────────────────────────────────── */
+
+#mal-gap-scroll-btns {
+  position: fixed;
+  bottom: 28px;
+  right: 24px;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#mal-gap-scroll-btns button {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(15, 25, 35, 0.85);
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35),
+              0 0 0 1px rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: transform 0.2s ease,
+              background 0.2s ease,
+              box-shadow 0.2s ease,
+              opacity 0.25s ease;
+  opacity: 1;
+}
+
+#mal-gap-scroll-btns button:hover {
+  background: rgba(46, 123, 234, 0.9);
+  transform: scale(1.12);
+  box-shadow: 0 4px 18px rgba(46, 123, 234, 0.35),
+              0 0 0 1px rgba(46, 123, 234, 0.4);
+}
+
+#mal-gap-scroll-btns button:active {
+  transform: scale(0.95);
+}
+
+/* Hidden state — used when scroll position makes button irrelevant */
+#mal-gap-scroll-btns button.mal-gap-btn-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.7);
+}

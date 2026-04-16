@@ -232,3 +232,151 @@ pre:empty {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
 }
+
+/* ── Rating Calculator ──────────────────────────────────── */
+
+#rating-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  margin: 16px 0 14px;
+}
+
+#calc-heading {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e8ecf1;
+  margin-bottom: 12px;
+  letter-spacing: -0.2px;
+}
+
+#rating-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+/* Let the 5th field (Enjoyment) span full width */
+#rating-inputs .rating-field:last-child {
+  grid-column: 1 / -1;
+}
+
+.rating-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.rating-field label {
+  font-size: 11px;
+  color: #7a8a9e;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.rating-field input {
+  background: #1a2634;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  color: #c5cdd8;
+  padding: 7px 8px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+}
+
+.rating-field input:focus {
+  border-color: #2e7bea;
+}
+
+.rating-field input::placeholder {
+  color: rgba(122, 138, 158, 0.5);
+  font-size: 11px;
+}
+
+/* ── Calculate Button ───────────────────────────────────── */
+
+#calcRating {
+  width: 100%;
+  padding: 10px;
+  background: linear-gradient(135deg, #2e7bea, #1a5fc7);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  margin-bottom: 12px;
+}
+
+#calcRating:hover {
+  background: linear-gradient(135deg, #3d8af5, #2e7bea);
+  box-shadow: 0 4px 16px rgba(46, 123, 234, 0.3);
+  transform: translateY(-1px);
+}
+
+#calcRating:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* ── Result Display ─────────────────────────────────────── */
+
+#rating-result {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 10px;
+  text-align: center;
+  transition: background 0.4s ease, box-shadow 0.4s ease;
+}
+
+#ratingValue {
+  font-size: 36px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+
+#ratingLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* ── Gradient Tiers ─────────────────────────────────────── */
+
+#rating-result.rating-tier-green {
+  background: linear-gradient(135deg, #1b8a4a, #27ae60);
+  box-shadow: 0 4px 20px rgba(39, 174, 96, 0.25);
+}
+
+#rating-result.rating-tier-yellow {
+  background: linear-gradient(135deg, #c27c0e, #e2a832);
+  box-shadow: 0 4px 20px rgba(226, 168, 50, 0.25);
+}
+
+#rating-result.rating-tier-red {
+  background: linear-gradient(135deg, #b33030, #e44444);
+  box-shadow: 0 4px 20px rgba(228, 68, 68, 0.25);
+}
+
+/* ── Error state (missing fields) ───────────────────────── */
+
+#rating-result.rating-error {
+  background: rgba(234, 68, 68, 0.12);
+  border: 1px solid rgba(234, 68, 68, 0.25);
+}
+
+#rating-result.rating-error #ratingValue {
+  color: #f07070;
+  font-size: 28px;
+}
+
+#rating-result.rating-error #ratingLabel {
+  color: #f07070;
+  font-size: 12px;
+}

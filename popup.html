@@ -6,7 +6,7 @@
 </head>
 <body>
   <header>
-    <img src="icon128.png" alt="MAL Gap Detector" class="logo">
+    <img src="Icons/128px.png" alt="MAL Gap Detector" class="logo">
     <h1>MAL Gap Detector</h1>
   </header>
 
@@ -42,6 +42,41 @@
   </div>
 
   <pre id="output"></pre>
+
+  <!-- ── Rating Calculator ─────────────────────────────── -->
+  <div id="rating-divider"></div>
+
+  <h2 id="calc-heading">Rating Calculator</h2>
+
+  <div id="rating-inputs">
+    <div class="rating-field">
+      <label for="rStory">Story</label>
+      <input type="number" id="rStory" min="0" max="10" step="1" placeholder="0–10">
+    </div>
+    <div class="rating-field">
+      <label for="rCharacter">Character</label>
+      <input type="number" id="rCharacter" min="0" max="10" step="1" placeholder="0–10">
+    </div>
+    <div class="rating-field">
+      <label for="rAnimation">Animation</label>
+      <input type="number" id="rAnimation" min="0" max="10" step="1" placeholder="0–10">
+    </div>
+    <div class="rating-field">
+      <label for="rSound">Sound</label>
+      <input type="number" id="rSound" min="0" max="10" step="1" placeholder="0–10">
+    </div>
+    <div class="rating-field">
+      <label for="rEnjoyment">Enjoyment</label>
+      <input type="number" id="rEnjoyment" min="0" max="10" step="1" placeholder="0–10">
+    </div>
+  </div>
+
+  <button id="calcRating">Calculate Rating</button>
+
+  <div id="rating-result" class="hidden">
+    <span id="ratingValue">—</span>
+    <span id="ratingLabel">/ 10</span>
+  </div>
 
   <script src="popup.js"></script>
 </body>

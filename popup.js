@@ -276,6 +276,7 @@ const calcBtn = $("#calcRating");
 const resultEl = $("#rating-result");
 const ratingValueEl = $("#ratingValue");
 const ratingLabelEl = $("#ratingLabel");
+const ratingActualEl = $("#ratingActual");
 
 const ratingInputIds = ["rStory", "rCharacter", "rAnimation", "rSound", "rEnjoyment"];
 
@@ -328,6 +329,7 @@ calcBtn.addEventListener("click", () => {
     resultEl.classList.add("rating-error");
     ratingValueEl.textContent = "!";
     ratingLabelEl.textContent = "Fill in all fields";
+    ratingActualEl.textContent = "";
     return;
   }
 
@@ -340,4 +342,5 @@ calcBtn.addEventListener("click", () => {
 
   ratingValueEl.textContent = final;
   ratingLabelEl.textContent = `/ 10  ·  ${getRatingLabel(final)}`;
+  ratingActualEl.textContent = `Actual: ${avg.toFixed(2)}`;
 });

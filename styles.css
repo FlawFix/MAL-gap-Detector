@@ -1,3 +1,99 @@
+/* ── Design Tokens ───────────────────────────────────── */
+:root {
+  /* ─ Background ─ */
+  --bg-base:        #0f1923;
+  --bg-surface:     #1a2634;
+  --bg-surface-alt: #111b25;
+  --bg-elevated:    #24333f;
+
+  /* ─ Text ─ */
+  --text-primary:   #e8ecf1;
+  --text-body:      #c5cdd8;
+  --text-muted:     #7a8a9e;
+  --text-code:      #8faabe;
+  --text-white:     #ffffff;
+
+  /* ─ Border / Divider ─ */
+  --border-subtle:  rgba(255, 255, 255, 0.04);
+  --border-light:   rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.08);
+  --border-focus:   var(--accent);
+
+  /* ─ Accent (Blue) ─ */
+  --accent:         #2e7bea;
+  --accent-hover:   #3d8af5;
+  --accent-deep:    #1a5fc7;
+  --accent-glow:    rgba(46, 123, 234, 0.3);
+  --accent-bg:      rgba(46, 123, 234, 0.1);
+  --accent-border:  rgba(46, 123, 234, 0.2);
+  --accent-text:    #7eb8f0;
+
+  /* ─ Secondary (Cyan) ─ */
+  --secondary-text:   #7ec8e3;
+  --secondary-border: rgba(126, 200, 227, 0.2);
+
+  /* ─ Success (Green) ─ */
+  --success:            #27ae60;
+  --success-alt:        #2ecc71;
+  --success-bg:         rgba(46, 204, 113, 0.1);
+  --success-border:     rgba(46, 204, 113, 0.2);
+  --success-text:       #6ee0a0;
+  --success-glow:       rgba(39, 174, 96, 0.1);
+  --success-start:      rgba(16, 185, 129, 0.22);
+  --success-mid:        rgba(46, 204, 113, 0.14);
+  --success-end:        rgba(52, 211, 153, 0.08);
+  --success-edge:       rgba(52, 211, 153, 0.25);
+  --success-shadow:     rgba(16, 185, 129, 0.12);
+  --success-shadow-far: rgba(16, 185, 129, 0.08);
+  --success-inset:      rgba(52, 211, 153, 0.12);
+
+  /* ─ Warning (Yellow / Amber) ─ */
+  --warning:            #e2a832;
+  --warning-alt:        #f1c40f;
+  --warning-bg:         rgba(226, 168, 50, 0.18);
+  --warning-border:     rgba(226, 168, 50, 0.2);
+  --warning-glow:       rgba(226, 168, 50, 0.1);
+  --warning-start:      rgba(245, 158, 11, 0.22);
+  --warning-mid:        rgba(226, 168, 50, 0.14);
+  --warning-end:        rgba(251, 191, 36, 0.08);
+  --warning-edge:       rgba(251, 191, 36, 0.25);
+  --warning-shadow:     rgba(245, 158, 11, 0.12);
+  --warning-shadow-far: rgba(245, 158, 11, 0.08);
+  --warning-inset:      rgba(251, 191, 36, 0.12);
+
+  /* ─ Danger (Red) ─ */
+  --danger:            #ea4444;
+  --danger-alt:        #e74c3c;
+  --danger-bg:         rgba(234, 68, 68, 0.12);
+  --danger-border:     rgba(234, 68, 68, 0.2);
+  --danger-text:       #f07070;
+  --danger-start:      rgba(239, 68, 68, 0.22);
+  --danger-mid:        rgba(234, 68, 68, 0.14);
+  --danger-end:        rgba(248, 113, 113, 0.08);
+  --danger-edge:       rgba(248, 113, 113, 0.2);
+  --danger-shadow:     rgba(239, 68, 68, 0.12);
+  --danger-shadow-far: rgba(239, 68, 68, 0.08);
+  --danger-inset:      rgba(248, 113, 113, 0.1);
+
+  /* ─ Semantic Gradients ─ */
+  --gradient-accent:       linear-gradient(135deg, var(--accent), var(--accent-deep));
+  --gradient-accent-hover: linear-gradient(135deg, var(--accent-hover), var(--accent));
+  --gradient-green:  linear-gradient(135deg, var(--success-start) 0%, var(--success-mid) 40%, var(--success-end) 100%);
+  --gradient-yellow: linear-gradient(135deg, var(--warning-start) 0%, var(--warning-mid) 40%, var(--warning-end) 100%);
+  --gradient-red:    linear-gradient(135deg, var(--danger-start)  0%, var(--danger-mid)  40%, var(--danger-end)  100%);
+
+  /* ─ Scrollbar ─ */
+  --scrollbar-thumb:       rgba(255, 255, 255, 0.1);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.2);
+
+  /* ─ Misc ─ */
+  --spinner-track: rgba(255, 255, 255, 0.3);
+  --placeholder:   rgba(122, 138, 158, 0.5);
+  --radius:        6px;
+  --radius-lg:     8px;
+  --radius-xl:     10px;
+}
+
 /* ── Reset & Base ─────────────────────────────────────── */
 * {
   margin: 0;
@@ -9,8 +105,8 @@ body {
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   width: 380px;
   padding: 16px;
-  background: #0f1923;
-  color: #c5cdd8;
+  background: var(--bg-base);
+  color: var(--text-body);
   font-size: 13px;
 }
 
@@ -21,19 +117,19 @@ header {
   gap: 10px;
   margin-bottom: 14px;
   padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--border-light);
 }
 
 header .logo {
   width: 28px;
   height: 28px;
-  border-radius: 6px;
+  border-radius: var(--radius);
 }
 
 header h1 {
   font-size: 15px;
   font-weight: 600;
-  color: #e8ecf1;
+  color: var(--text-primary);
   letter-spacing: -0.3px;
 }
 
@@ -52,18 +148,18 @@ header h1 {
 }
 
 .control-row label {
-  font-size: 11px;
-  color: #7a8a9e;
+  font-size: 10px;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .control-row input,
 .control-row select {
-  background: #1a2634;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 6px;
-  color: #c5cdd8;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius);
+  color: var(--text-body);
   padding: 6px 8px;
   font-size: 12px;
   outline: none;
@@ -72,7 +168,7 @@ header h1 {
 
 .control-row input:focus,
 .control-row select:focus {
-  border-color: #2e7bea;
+  border-color: var(--accent);
 }
 
 /* ── Buttons ─────────────────────────────────────────── */
@@ -86,7 +182,7 @@ button {
   flex: 1;
   padding: 8px 12px;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -102,22 +198,22 @@ button:active:not(:disabled) {
 }
 
 #analyze {
-  background: #2e7bea;
-  color: #fff;
+  background: var(--accent);
+  color: var(--text-white);
 }
 
 #analyze:hover:not(:disabled) {
-  background: #3d8af5;
+  background: var(--accent-hover);
 }
 
 #download {
-  background: #1a2634;
-  color: #7ec8e3;
-  border: 1px solid rgba(126, 200, 227, 0.2);
+  background: var(--bg-surface);
+  color: var(--secondary-text);
+  border: 1px solid var(--secondary-border);
 }
 
 #download:hover:not(:disabled) {
-  background: #24333f;
+  background: var(--bg-elevated);
 }
 
 button:disabled {
@@ -129,8 +225,8 @@ button:disabled {
 .spinner {
   width: 14px;
   height: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #fff;
+  border: 2px solid var(--spinner-track);
+  border-top-color: var(--text-white);
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }
@@ -146,28 +242,28 @@ button:disabled {
 /* ── Status ──────────────────────────────────────────── */
 #status {
   padding: 8px 10px;
-  border-radius: 6px;
+  border-radius: var(--radius);
   font-size: 12px;
   margin-bottom: 10px;
   line-height: 1.4;
 }
 
 #status.error {
-  background: rgba(234, 68, 68, 0.12);
-  color: #f07070;
-  border: 1px solid rgba(234, 68, 68, 0.2);
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  border: 1px solid var(--danger-border);
 }
 
 #status.info {
-  background: rgba(46, 123, 234, 0.1);
-  color: #7eb8f0;
-  border: 1px solid rgba(46, 123, 234, 0.2);
+  background: var(--accent-bg);
+  color: var(--accent-text);
+  border: 1px solid var(--accent-border);
 }
 
 #status.success {
-  background: rgba(46, 204, 113, 0.1);
-  color: #6ee0a0;
-  border: 1px solid rgba(46, 204, 113, 0.2);
+  background: var(--success-bg);
+  color: var(--success-text);
+  border: 1px solid var(--success-border);
 }
 
 /* ── Summary ─────────────────────────────────────────── */
@@ -179,19 +275,19 @@ button:disabled {
 
 #summary span {
   flex: 1;
-  background: #1a2634;
-  border-radius: 6px;
+  background: var(--bg-surface);
+  border-radius: var(--radius);
   padding: 8px;
   text-align: center;
   font-size: 11px;
   line-height: 1.5;
-  color: #7a8a9e;
+  color: var(--text-muted);
 }
 
 #summary span strong {
   display: block;
   font-size: 16px;
-  color: #e8ecf1;
+  color: var(--text-primary);
   font-weight: 700;
 }
 
@@ -201,11 +297,11 @@ pre {
   overflow: auto;
   font-size: 11px;
   font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
-  background: #111b25;
-  color: #8faabe;
+  background: var(--bg-surface-alt);
+  color: var(--text-code);
   padding: 10px;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: var(--radius);
+  border: 1px solid var(--border-subtle);
   white-space: pre-wrap;
   word-break: break-word;
   line-height: 1.6;
@@ -225,26 +321,26 @@ pre:empty {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--scrollbar-thumb);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* ── Rating Calculator ──────────────────────────────────── */
 
 #rating-divider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--border-light);
   margin: 16px 0 14px;
 }
 
 #calc-heading {
   font-size: 14px;
   font-weight: 600;
-  color: #e8ecf1;
+  color: var(--text-primary);
   margin-bottom: 12px;
   letter-spacing: -0.2px;
 }
@@ -269,16 +365,16 @@ pre:empty {
 
 .rating-field label {
   font-size: 11px;
-  color: #7a8a9e;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .rating-field input {
-  background: #1a2634;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 6px;
-  color: #c5cdd8;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius);
+  color: var(--text-body);
   padding: 7px 8px;
   font-size: 13px;
   outline: none;
@@ -287,11 +383,11 @@ pre:empty {
 }
 
 .rating-field input:focus {
-  border-color: #2e7bea;
+  border-color: var(--accent);
 }
 
 .rating-field input::placeholder {
-  color: rgba(122, 138, 158, 0.5);
+  color: var(--placeholder);
   font-size: 11px;
 }
 
@@ -300,20 +396,20 @@ pre:empty {
 #calcRating {
   width: 100%;
   padding: 10px;
-  background: linear-gradient(135deg, #2e7bea, #1a5fc7);
-  color: #fff;
+  background: var(--gradient-accent);
+  color: var(--text-white);
   font-size: 13px;
   font-weight: 700;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   cursor: pointer;
   transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
   margin-bottom: 12px;
 }
 
 #calcRating:hover {
-  background: linear-gradient(135deg, #3d8af5, #2e7bea);
-  box-shadow: 0 4px 16px rgba(46, 123, 234, 0.3);
+  background: var(--gradient-accent-hover);
+  box-shadow: 0 4px 16px var(--accent-glow);
   transform: translateY(-1px);
 }
 
@@ -325,58 +421,85 @@ pre:empty {
 
 #rating-result {
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 16px;
+  border-radius: var(--radius-xl);
+  text-align: center;
+  transition: background 0.4s ease, box-shadow 0.4s ease;
+}
+
+#rating-main {
+  display: flex;
   align-items: baseline;
   justify-content: center;
   gap: 8px;
-  padding: 16px;
-  border-radius: 10px;
-  text-align: center;
-  transition: background 0.4s ease, box-shadow 0.4s ease;
+}
+
+#ratingActual {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 400;
+  letter-spacing: 0.2px;
+  opacity: 0.8;
 }
 
 #ratingValue {
   font-size: 36px;
   font-weight: 800;
-  color: #fff;
+  color: var(--text-primary);
   line-height: 1;
 }
 
 #ratingLabel {
   font-size: 14px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--text-muted);
 }
 
 /* ── Gradient Tiers ─────────────────────────────────────── */
 
 #rating-result.rating-tier-green {
-  background: linear-gradient(135deg, #1b8a4a, #27ae60);
-  box-shadow: 0 4px 20px rgba(39, 174, 96, 0.25);
+  background: var(--gradient-green);
+  border: 1px solid var(--success-edge);
+  box-shadow:
+    0 2px 8px var(--success-shadow),
+    0 8px 24px var(--success-shadow-far),
+    inset 0 1px 0 var(--success-inset);
 }
 
 #rating-result.rating-tier-yellow {
-  background: linear-gradient(135deg, #c27c0e, #e2a832);
-  box-shadow: 0 4px 20px rgba(226, 168, 50, 0.25);
+  background: var(--gradient-yellow);
+  border: 1px solid var(--warning-edge);
+  box-shadow:
+    0 2px 8px var(--warning-shadow),
+    0 8px 24px var(--warning-shadow-far),
+    inset 0 1px 0 var(--warning-inset);
 }
 
 #rating-result.rating-tier-red {
-  background: linear-gradient(135deg, #b33030, #e44444);
-  box-shadow: 0 4px 20px rgba(228, 68, 68, 0.25);
+  background: var(--gradient-red);
+  border: 1px solid var(--danger-edge);
+  box-shadow:
+    0 2px 8px var(--danger-shadow),
+    0 8px 24px var(--danger-shadow-far),
+    inset 0 1px 0 var(--danger-inset);
 }
 
 /* ── Error state (missing fields) ───────────────────────── */
 
 #rating-result.rating-error {
-  background: rgba(234, 68, 68, 0.12);
+  background: var(--danger-bg);
   border: 1px solid rgba(234, 68, 68, 0.25);
 }
 
 #rating-result.rating-error #ratingValue {
-  color: #f07070;
+  color: var(--danger-text);
   font-size: 28px;
 }
 
 #rating-result.rating-error #ratingLabel {
-  color: #f07070;
+  color: var(--danger-text);
   font-size: 12px;
 }

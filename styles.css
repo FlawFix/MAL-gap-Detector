@@ -401,7 +401,8 @@ pre:empty {
 
 /* ── Live Page Filters ──────────────────────────────────── */
 
-#live-filters {
+#live-filters,
+#live-sorting {
   display: flex;
   flex-direction: column;
   gap: 10px;

@@ -156,6 +156,9 @@ const elements = {
   pageScoreInput: $("#pageScore"),
   applyScoreBtn: $("#applyScoreFilter"),
   clearScoreBtn: $("#clearScoreFilter"),
+  pageSortOrder: $("#pageSortOrder"),
+  applyDaysSortBtn: $("#applyDaysSort"),
+  clearDaysSortBtn: $("#clearDaysSort"),
   calcBtn: $("#calcRating"),
   ratingResult: $("#rating-result"),
   ratingValue: $("#ratingValue"),
@@ -481,6 +484,27 @@ async function clearLiveScoreFilter() {
   }
 }
 
+// ── Live Page Sorting by Days ───────────────────────────────────────
+
+async function applyLiveDaysSort() {
+  const order = elements.pageSortOrder.value;
+  const tab = await getActiveTab();
+  if (tab && isMalAnimelistTab(tab)) {
+    chrome.tabs.sendMessage(tab.id, { action: "sortDays", order });
+    setStatus(`Live page sorted by days (${order === "desc" ? "Longest" : "Fastest"} first).`, "success");
+  } else {
+    setStatus("Navigate to a MAL anime list page to use live sorting.", "error");
+  }
+}
+
+async function clearLiveDaysSort() {
+  const tab = await getActiveTab();
+  if (tab && isMalAnimelistTab(tab)) {
+    chrome.tabs.sendMessage(tab.id, { action: "sortDays", order: null });
+    setStatus("Live sorting cleared.", "info");
+  }
+}
+
 // ── Event Wiring & Init ─────────────────────────────────────────────
 
 function bindEvents() {
@@ -489,6 +513,10 @@ function bindEvents() {
   
   elements.applyScoreBtn.addEventListener("click", applyLiveScoreFilter);
   elements.clearScoreBtn.addEventListener("click", clearLiveScoreFilter);
+  
+  elements.applyDaysSortBtn.addEventListener("click", applyLiveDaysSort);
+  elements.clearDaysSortBtn.addEventListener("click", clearLiveDaysSort);
+
   elements.minGapInput.addEventListener("input", () => {
     if (state.rawGaps.length > 0) {
       renderAnalysis();

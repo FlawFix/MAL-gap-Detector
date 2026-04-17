@@ -171,6 +171,60 @@ header h1 {
   border-color: var(--accent);
 }
 
+/* ── Date Range Filter ──────────────────────────────── */
+#date-range {
+  margin-bottom: 20px;
+}
+
+.range-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  margin-bottom: 12px;
+}
+
+.range-row .control-row {
+  flex: 1;
+}
+
+.range-separator {
+  color: var(--text-muted);
+  font-size: 13px;
+  padding-bottom: 7px;
+  user-select: none;
+}
+
+.range-presets {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.preset-pill {
+  flex: 0 1 auto;
+  padding: 3px 10px;
+  font-size: 10px;
+  font-weight: 500;
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.preset-pill:hover {
+  background: var(--bg-elevated);
+  color: var(--text-body);
+}
+
+.preset-pill.active {
+  background: var(--accent-bg);
+  color: var(--accent-text);
+  border-color: var(--accent-border);
+}
+
 /* ── Buttons ─────────────────────────────────────────── */
 #actions {
   display: flex;

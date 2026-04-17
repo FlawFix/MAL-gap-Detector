@@ -1,31 +1,35 @@
-// ── Date Parsing ────────────────────────────────────────────────────
-// MAL renders dates in several formats depending on user settings and
-// list layout.  We try the most common ones before falling back to the
-// native Date parser.
+// ── Shared Constants ────────────────────────────────────────────────
+const MS_PER_DAY = 1000 * 60 * 60 * 24;
+const MAL_ANIMELIST_URL_PREFIX = "https://myanimelist.net/animelist/";
+const REPORT_FILENAME = "mal-gap-report.md";
+const RATING_INPUT_IDS = ["rStory", "rCharacter", "rAnimation", "rSound", "rEnjoyment"];
+
+// ── Date Parsing & Formatting ───────────────────────────────────────
 
 function parseDate(dateStr) {
-  if (!dateStr || dateStr.trim() === "-" || dateStr.trim() === "") return null;
-  const s = dateStr.trim();
+  if (!dateStr || dateStr.trim() === "-" || dateStr.trim() === "") {
+    return null;
+  }
 
-  // Format 1: "DD-MM-YY" (legacy/classic list)
-  const ddmmyy = s.match(/^(\d{1,2})-(\d{1,2})-(\d{2})$/);
-  if (ddmmyy) {
-    const [, day, month, year] = ddmmyy;
-    // Use a pivot: 00-49 → 2000-2049, 50-99 → 1950-1999
-    const y = parseInt(year, 10);
-    const fullYear = y < 50 ? 2000 + y : 1900 + y;
+  const value = dateStr.trim();
+  const legacyMatch = value.match(/^(\d{1,2})-(\d{1,2})-(\d{2})$/);
+
+  if (legacyMatch) {
+    const [, day, month, year] = legacyMatch;
+    const shortYear = parseInt(year, 10);
+    const fullYear = shortYear < 50 ? 2000 + shortYear : 1900 + shortYear;
     return new Date(fullYear, parseInt(month, 10) - 1, parseInt(day, 10));
   }
 
-  // Format 2: "Mon D, YYYY" or "MMM DD, YYYY" (modern list, e.g. "Apr 3, 2024")
-  const mdyLong = Date.parse(s);
-  if (!isNaN(mdyLong)) return new Date(mdyLong);
-
-  return null;
+  const parsedValue = Date.parse(value);
+  return Number.isNaN(parsedValue) ? null : new Date(parsedValue);
 }
 
 function formatDate(date) {
-  if (!date) return "N/A";
+  if (!date) {
+    return "N/A";
+  }
+
   return date.toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "short",
@@ -33,314 +37,452 @@ function formatDate(date) {
   });
 }
 
+function calculateGapDays(previousFinishedDate, nextStartedDate) {
+  if (!previousFinishedDate || !nextStartedDate) {
+    return 0;
+  }
+
+  return Math.max(Math.round((nextStartedDate - previousFinishedDate) / MS_PER_DAY) - 1, 0);
+}
+
 // ── Gap Detection ───────────────────────────────────────────────────
 
 function detectGaps(data) {
-  const withDates = data
-    .map(item => ({
+  const sortedEntries = data
+    .map((item) => ({
       ...item,
       startedDate: parseDate(item.started),
       finishedDate: parseDate(item.finished)
     }))
-    .filter(item => item.finishedDate !== null);  // safety: drop unparseable
+    .filter((item) => item.finishedDate !== null)
+    .sort((a, b) => a.finishedDate - b.finishedDate);
 
-  const sorted = withDates.sort((a, b) => a.finishedDate - b.finishedDate);
-  const results = [];
+  return sortedEntries.slice(0, -1).map((current, index) => {
+    const next = sortedEntries[index + 1];
 
-  for (let i = 0; i < sorted.length - 1; i++) {
-    const current = sorted[i];
-    const next = sorted[i + 1];
-
-    let gapDays = 0;
-    if (next.startedDate && current.finishedDate) {
-      gapDays = Math.round(
-        (next.startedDate - current.finishedDate) / (1000 * 60 * 60 * 24)
-      ) - 1;
-    }
-
-    results.push({
+    return {
       current,
       next,
-      gap: Math.max(gapDays, 0)
-    });
-  }
-
-  return results;
+      gap: calculateGapDays(current.finishedDate, next.startedDate)
+    };
+  });
 }
 
 // ── Markdown Generation ─────────────────────────────────────────────
 
 function generateMarkdown(gaps) {
-  let md = "# Anime Watch Gap Report\n\n";
+  const lines = ["# Anime Watch Gap Report", ""];
 
-  gaps.forEach(entry => {
-    const { current, next, gap } = entry;
-    md += `##### ${current.title} → ${next.title}\n`;
-    md += `- Finished: ${formatDate(current.finishedDate)}\n`;
-    md += `- Next Started: ${formatDate(next.startedDate)}\n`;
-    md += `- **Gap: ${gap} day${gap !== 1 ? 's' : ''}**\n`;
-    md += "\n";
+  gaps.forEach(({ current, next, gap }) => {
+    lines.push(`##### ${current.title} → ${next.title}`);
+    lines.push(`- Finished: ${formatDate(current.finishedDate)}`);
+    lines.push(`- Next Started: ${formatDate(next.startedDate)}`);
+    lines.push(`- **Gap: ${gap} day${gap !== 1 ? "s" : ""}**`);
+    lines.push("");
   });
 
-  return md;
+  return lines.join("\n");
 }
 
-// ── UI Helpers ──────────────────────────────────────────────────────
-
-const $ = (sel) => document.querySelector(sel);
-const analyzeBtn = $("#analyze");
-const downloadBtn = $("#download");
-const statusEl = $("#status");
-const outputEl = $("#output");
-const summaryEl = $("#summary");
-const minGapInput = $("#minGap");
-const sortSelect = $("#sortBy");
-
-let rawGaps = [];       // unfiltered results from the last analysis
-let currentReport = ""; // generated markdown
-
-function setStatus(message, type = "info") {
-  statusEl.textContent = message;
-  statusEl.className = type; // "error" | "info" | "success"
-}
-
-function clearStatus() {
-  statusEl.className = "hidden";
-  statusEl.textContent = "";
-}
-
-function setLoading(loading) {
-  const spinner = analyzeBtn.querySelector(".spinner");
-  const text = analyzeBtn.querySelector(".btn-text");
-  if (loading) {
-    spinner.classList.remove("hidden");
-    text.textContent = "Analyzing…";
-    analyzeBtn.disabled = true;
-  } else {
-    spinner.classList.add("hidden");
-    text.textContent = "Analyze";
-    analyzeBtn.disabled = false;
-  }
-}
-
-function showSummary(gaps) {
-  if (gaps.length === 0) {
-    summaryEl.classList.add("hidden");
-    return;
-  }
-  const gapValues = gaps.map(g => g.gap);
-  const largest = Math.max(...gapValues);
-  const avg = (gapValues.reduce((a, b) => a + b, 0) / gapValues.length).toFixed(1);
-
-  $("#totalEntries").innerHTML = `<strong>${gaps.length}</strong> transitions`;
-  $("#largestGap").innerHTML = `<strong>${largest}</strong> day max`;
-  $("#avgGap").innerHTML = `<strong>${avg}</strong> day avg`;
-  summaryEl.classList.remove("hidden");
-}
-
-function applyFiltersAndRender() {
-  const minGap = Math.max(parseInt(minGapInput.value, 10) || 0, 1);
-  const sortBy = sortSelect.value;
-
-  // Always exclude 0-gap entries (no real gap) + apply user threshold
-  let filtered = rawGaps.filter(g => g.gap >= minGap);
-
-  if (sortBy === "gap-desc") {
-    filtered.sort((a, b) => b.gap - a.gap);
-  } else if (sortBy === "gap-asc") {
-    filtered.sort((a, b) => a.gap - b.gap);
-  }
-  // "chronological" keeps the default order from detectGaps()
-
-  showSummary(filtered);
-  currentReport = generateMarkdown(filtered);
-  outputEl.textContent = currentReport;
-  downloadBtn.disabled = filtered.length === 0;
-}
-
-// ── Scraping (injected into the MAL tab) ────────────────────────────
-// This function runs inside the MAL page context.  It tries selectors
-// for both the modern and classic list layouts.
+// ── MAL Page Scraping ───────────────────────────────────────────────
 
 function scrapeAnimelist() {
   const data = [];
 
-  // Modern layout
-  const modernRows = document.querySelectorAll(".list-table-data .list-table-row, .list-table-data");
-  modernRows.forEach(row => {
-    const titleEl = row.querySelector(".title .link, .title a");
-    const startedEl = row.querySelector(".data.started, td.started");
-    const finishedEl = row.querySelector(".data.finished, td.finished");
-
-    const title = titleEl?.innerText?.trim();
-    const started = startedEl?.innerText?.trim();
-    const finished = finishedEl?.innerText?.trim();
-
+  function addEntry(title, started, finished) {
     if (title && finished && finished !== "-") {
       data.push({ title, started, finished });
     }
-  });
+  }
 
-  // Classic layout fallback (table rows)
-  if (data.length === 0) {
-    const classicRows = document.querySelectorAll("table.list-table tbody tr, #list-container .list-item");
-    classicRows.forEach(row => {
-      const cols = row.querySelectorAll("td");
-      if (cols.length >= 8) {
-        const title = cols[1]?.innerText?.trim();
-        const started = cols[6]?.innerText?.trim();
-        const finished = cols[7]?.innerText?.trim();
-        if (title && finished && finished !== "-") {
-          data.push({ title, started, finished });
-        }
+  function collectRows(rows, extractRow) {
+    rows.forEach((row) => {
+      const entry = extractRow(row);
+      if (entry) {
+        addEntry(entry.title, entry.started, entry.finished);
       }
     });
+  }
+
+  collectRows(
+    document.querySelectorAll(".list-table-data .list-table-row, .list-table-data"),
+    (row) => {
+      const title = row.querySelector(".title .link, .title a")?.innerText?.trim();
+      const started = row.querySelector(".data.started, td.started")?.innerText?.trim();
+      const finished = row.querySelector(".data.finished, td.finished")?.innerText?.trim();
+
+      return title ? { title, started, finished } : null;
+    }
+  );
+
+  if (data.length === 0) {
+    collectRows(
+      document.querySelectorAll("table.list-table tbody tr, #list-container .list-item"),
+      (row) => {
+        const cols = row.querySelectorAll("td");
+        if (cols.length < 8) {
+          return null;
+        }
+
+        return {
+          title: cols[1]?.innerText?.trim(),
+          started: cols[6]?.innerText?.trim(),
+          finished: cols[7]?.innerText?.trim()
+        };
+      }
+    );
   }
 
   return data;
 }
 
-// ── Main: Analyze Button ────────────────────────────────────────────
+// ── DOM References & Local State ────────────────────────────────────
 
-analyzeBtn.addEventListener("click", async () => {
-  clearStatus();
-  outputEl.textContent = "";
-  summaryEl.classList.add("hidden");
-  downloadBtn.disabled = true;
+const $ = (selector) => document.querySelector(selector);
 
-  // Validate active tab
+const elements = {
+  analyzeBtn: $("#analyze"),
+  downloadBtn: $("#download"),
+  status: $("#status"),
+  output: $("#output"),
+  summary: $("#summary"),
+  minGapInput: $("#minGap"),
+  sortSelect: $("#sortBy"),
+  fromYearInput: $("#fromYear"),
+  toYearInput: $("#toYear"),
+  totalEntries: $("#totalEntries"),
+  largestGap: $("#largestGap"),
+  avgGap: $("#avgGap"),
+  calcBtn: $("#calcRating"),
+  ratingResult: $("#rating-result"),
+  ratingValue: $("#ratingValue"),
+  ratingLabel: $("#ratingLabel"),
+  ratingActual: $("#ratingActual")
+};
+
+const ratingInputs = RATING_INPUT_IDS.map((id) => document.getElementById(id));
+
+const state = {
+  rawGaps: [],
+  currentReport: ""
+};
+
+// ── Popup UI Helpers ────────────────────────────────────────────────
+
+function setHidden(element, hidden) {
+  element.classList.toggle("hidden", hidden);
+}
+
+function setStatus(message, type = "info") {
+  elements.status.textContent = message;
+  elements.status.className = type;
+}
+
+function clearStatus() {
+  elements.status.className = "hidden";
+  elements.status.textContent = "";
+}
+
+function setAnalyzeLoading(isLoading) {
+  const spinner = elements.analyzeBtn.querySelector(".spinner");
+  const text = elements.analyzeBtn.querySelector(".btn-text");
+
+  setHidden(spinner, !isLoading);
+  text.textContent = isLoading ? "Analyzing…" : "Analyze";
+  elements.analyzeBtn.disabled = isLoading;
+}
+
+function resetAnalysisState() {
+  state.rawGaps = [];
+  state.currentReport = "";
+  elements.output.textContent = "";
+  setHidden(elements.summary, true);
+  elements.downloadBtn.disabled = true;
+}
+
+// ── Gap Filter & Render Flow ────────────────────────────────────────
+
+function renderSummary(gaps) {
+  if (gaps.length === 0) {
+    setHidden(elements.summary, true);
+    return;
+  }
+
+  const gapValues = gaps.map((entry) => entry.gap);
+  const largestGap = Math.max(...gapValues);
+  const averageGap = (
+    gapValues.reduce((total, value) => total + value, 0) / gapValues.length
+  ).toFixed(1);
+
+  elements.totalEntries.innerHTML = `<strong>${gaps.length}</strong> transitions`;
+  elements.largestGap.innerHTML = `<strong>${largestGap}</strong> day max`;
+  elements.avgGap.innerHTML = `<strong>${averageGap}</strong> day avg`;
+  setHidden(elements.summary, false);
+}
+
+function getMinimumGap() {
+  return Math.max(parseInt(elements.minGapInput.value, 10) || 0, 1);
+}
+
+function sortGaps(gaps, sortBy) {
+  if (sortBy === "gap-desc") {
+    gaps.sort((a, b) => b.gap - a.gap);
+  } else if (sortBy === "gap-asc") {
+    gaps.sort((a, b) => a.gap - b.gap);
+  }
+
+  return gaps;
+}
+
+function getDateRange() {
+  const fromYear = parseInt(elements.fromYearInput.value, 10) || null;
+  const toYear = parseInt(elements.toYearInput.value, 10) || null;
+  return { fromYear, toYear };
+}
+
+function getFilteredGaps() {
+  const minGap = getMinimumGap();
+  const { fromYear, toYear } = getDateRange();
+
+  let filtered = state.rawGaps.filter((entry) => entry.gap >= minGap);
+
+  if (fromYear || toYear) {
+    filtered = filtered.filter(({ current, next }) => {
+      const finishYear = current.finishedDate.getFullYear();
+      const startYear = next.startedDate?.getFullYear() ?? finishYear;
+
+      if (fromYear && finishYear < fromYear && startYear < fromYear) return false;
+      if (toYear && finishYear > toYear && startYear > toYear) return false;
+      return true;
+    });
+  }
+
+  return sortGaps([...filtered], elements.sortSelect.value);
+}
+
+function renderAnalysis() {
+  const filteredGaps = getFilteredGaps();
+  renderSummary(filteredGaps);
+  state.currentReport = generateMarkdown(filteredGaps);
+  elements.output.textContent = state.currentReport;
+  elements.downloadBtn.disabled = filteredGaps.length === 0;
+}
+
+// ── Chrome Tab Access ───────────────────────────────────────────────
+
+async function getActiveTab() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  return tab;
+}
 
-  if (!tab?.url || !tab.url.startsWith("https://myanimelist.net/animelist/")) {
+function isMalAnimelistTab(tab) {
+  return Boolean(tab?.url?.startsWith(MAL_ANIMELIST_URL_PREFIX));
+}
+
+async function scrapeActiveTab(tabId) {
+  const results = await chrome.scripting.executeScript({
+    target: { tabId },
+    func: scrapeAnimelist
+  });
+
+  return results?.[0]?.result ?? [];
+}
+
+// ── Analyze Action ──────────────────────────────────────────────────
+
+async function analyzeCurrentTab() {
+  clearStatus();
+  resetAnalysisState();
+
+  const tab = await getActiveTab();
+  if (!isMalAnimelistTab(tab)) {
     setStatus("Navigate to a MAL anime list page first (myanimelist.net/animelist/…)", "error");
     return;
   }
 
-  setLoading(true);
+  setAnalyzeLoading(true);
 
   try {
-    const results = await chrome.scripting.executeScript({
-      target: { tabId: tab.id },
-      func: scrapeAnimelist
-    });
+    const data = await scrapeActiveTab(tab.id);
 
-    const data = results?.[0]?.result;
-
-    if (!data || data.length === 0) {
+    if (data.length === 0) {
       setStatus("No completed anime found on this page. Make sure the list has finished dates visible.", "error");
-      setLoading(false);
       return;
     }
 
-    rawGaps = detectGaps(data);
-    setStatus(`Scraped ${data.length} entries, found ${rawGaps.length} transitions.`, "success");
-    applyFiltersAndRender();
-  } catch (err) {
-    console.error("MAL Gap Detector error:", err);
-    setStatus(`Error: ${err.message}`, "error");
+    state.rawGaps = detectGaps(data);
+    setStatus(`Scraped ${data.length} entries, found ${state.rawGaps.length} transitions.`, "success");
+    renderAnalysis();
+  } catch (error) {
+    console.error("MAL Gap Detector error:", error);
+    setStatus(`Error: ${error.message}`, "error");
   } finally {
-    setLoading(false);
+    setAnalyzeLoading(false);
   }
-});
-
-// ── Filters: re-render on change ────────────────────────────────────
-
-minGapInput.addEventListener("input", () => {
-  if (rawGaps.length > 0) applyFiltersAndRender();
-});
-
-sortSelect.addEventListener("change", () => {
-  if (rawGaps.length > 0) applyFiltersAndRender();
-});
-
-// ── Download Button ─────────────────────────────────────────────────
-
-downloadBtn.addEventListener("click", () => {
-  if (!currentReport) return;
-
-  const blob = new Blob([currentReport], { type: "text/markdown" });
-  const url = URL.createObjectURL(blob);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "mal-gap-report.md";
-  a.click();
-
-  // Clean up blob reference to avoid memory leak
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-});
-
-// ── Rating Calculator ───────────────────────────────────────────────
-
-const calcBtn = $("#calcRating");
-const resultEl = $("#rating-result");
-const ratingValueEl = $("#ratingValue");
-const ratingLabelEl = $("#ratingLabel");
-const ratingActualEl = $("#ratingActual");
-
-const ratingInputIds = ["rStory", "rCharacter", "rAnimation", "rSound", "rEnjoyment"];
-
-// Clamp each input to 0–10 as the user types
-ratingInputIds.forEach(id => {
-  const input = document.getElementById(id);
-  input.addEventListener("input", () => {
-    let v = parseInt(input.value, 10);
-    if (isNaN(v)) return;
-    if (v > 10) input.value = 10;
-    if (v < 0) input.value = 0;
-  });
-});
-
-/**
- * Return a human-readable label for the final rating.
- */
-function getRatingLabel(rating) {
-  if (rating >= 9) return "Masterpiece";
-  if (rating === 8) return "Great";
-  if (rating === 7) return "Good";
-  if (rating === 6) return "Fine";
-  if (rating === 5) return "Average";
-  if (rating === 4) return "Below Average";
-  if (rating === 3) return "Bad";
-  if (rating === 2) return "Terrible";
-  if (rating === 1) return "Appalling";
-  return "—";
 }
 
-/**
- * Return CSS class suffix for the gradient tier.
- * green = 7–10, yellow = 4–6, red = 1–3
- */
-function getRatingTier(rating) {
-  if (rating >= 7) return "green";
-  if (rating >= 4) return "yellow";
-  return "red";
-}
+// ── Report Download ────────────────────────────────────────────────
 
-calcBtn.addEventListener("click", () => {
-  const values = ratingInputIds.map(id => {
-    const v = parseFloat(document.getElementById(id).value);
-    return isNaN(v) ? null : Math.max(0, Math.min(10, v));
-  });
-
-  // Validate – all five fields must have a value
-  if (values.some(v => v === null)) {
-    resultEl.className = ""; // remove hidden, show error state
-    resultEl.classList.add("rating-error");
-    ratingValueEl.textContent = "!";
-    ratingLabelEl.textContent = "Fill in all fields";
-    ratingActualEl.textContent = "";
+function downloadReport() {
+  if (!state.currentReport) {
     return;
   }
 
-  const avg = values.reduce((a, b) => a + b, 0) / values.length;
-  const final = Math.round(avg); // ≥ .5 rounds up, < .5 rounds down
+  const blob = new Blob([state.currentReport], { type: "text/markdown" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
 
-  // Update result display
-  resultEl.className = ""; // reset all classes
-  resultEl.classList.add("rating-tier-" + getRatingTier(final));
+  link.href = url;
+  link.download = REPORT_FILENAME;
+  link.click();
 
-  ratingValueEl.textContent = final;
-  ratingLabelEl.textContent = `/ 10  ·  ${getRatingLabel(final)}`;
-  ratingActualEl.textContent = `Actual: ${avg.toFixed(2)}`;
-});
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// ── Rating Calculator Helpers ───────────────────────────────────────
+
+function clampValue(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function clampRatingInput(input) {
+  const numericValue = parseInt(input.value, 10);
+  if (Number.isNaN(numericValue)) {
+    return;
+  }
+
+  input.value = clampValue(numericValue, 0, 10);
+}
+
+function getRatingLabel(rating) {
+  const labels = {
+    8: "Great",
+    7: "Good",
+    6: "Fine",
+    5: "Average",
+    4: "Below Average",
+    3: "Bad",
+    2: "Terrible",
+    1: "Appalling"
+  };
+
+  if (rating >= 9) {
+    return "Masterpiece";
+  }
+
+  return labels[rating] ?? "—";
+}
+
+function getRatingTier(rating) {
+  if (rating >= 7) {
+    return "green";
+  }
+
+  if (rating >= 4) {
+    return "yellow";
+  }
+
+  return "red";
+}
+
+function getRatingValues() {
+  return ratingInputs.map((input) => {
+    const numericValue = parseFloat(input.value);
+    return Number.isNaN(numericValue) ? null : clampValue(numericValue, 0, 10);
+  });
+}
+
+function renderRatingError() {
+  elements.ratingResult.className = "";
+  elements.ratingResult.classList.add("rating-error");
+  elements.ratingValue.textContent = "!";
+  elements.ratingLabel.textContent = "Fill in all fields";
+  elements.ratingActual.textContent = "";
+}
+
+function renderRatingResult(finalRating, averageRating) {
+  elements.ratingResult.className = "";
+  elements.ratingResult.classList.add(`rating-tier-${getRatingTier(finalRating)}`);
+  elements.ratingValue.textContent = finalRating;
+  elements.ratingLabel.textContent = `/ 10  ·  ${getRatingLabel(finalRating)}`;
+  elements.ratingActual.textContent = `Actual: ${averageRating.toFixed(2)}`;
+}
+
+// ── Rating Calculation ──────────────────────────────────────────────
+
+function calculateRating() {
+  const values = getRatingValues();
+
+  if (values.some((value) => value === null)) {
+    renderRatingError();
+    return;
+  }
+
+  const averageRating = values.reduce((total, value) => total + value, 0) / values.length;
+  const finalRating = Math.round(averageRating);
+  renderRatingResult(finalRating, averageRating);
+}
+
+// ── Date Range Presets ──────────────────────────────────────────────
+
+function clearPresetSelection() {
+  document.querySelectorAll(".preset-pill").forEach((pill) => pill.classList.remove("active"));
+}
+
+function applyPreset(preset) {
+  clearPresetSelection();
+  document.querySelector(`.preset-pill[data-preset="${preset}"]`)?.classList.add("active");
+
+  if (preset === "all") {
+    elements.fromYearInput.value = "";
+    elements.toYearInput.value = "";
+  } else {
+    const years = parseInt(preset, 10);
+    const currentYear = new Date().getFullYear();
+    elements.fromYearInput.value = currentYear - years;
+    elements.toYearInput.value = currentYear;
+  }
+
+  if (state.rawGaps.length > 0) {
+    renderAnalysis();
+  }
+}
+
+// ── Event Wiring & Init ─────────────────────────────────────────────
+
+function bindEvents() {
+  elements.analyzeBtn.addEventListener("click", analyzeCurrentTab);
+  elements.downloadBtn.addEventListener("click", downloadReport);
+  elements.minGapInput.addEventListener("input", () => {
+    if (state.rawGaps.length > 0) {
+      renderAnalysis();
+    }
+  });
+  elements.sortSelect.addEventListener("change", () => {
+    if (state.rawGaps.length > 0) {
+      renderAnalysis();
+    }
+  });
+  elements.fromYearInput.addEventListener("input", () => {
+    clearPresetSelection();
+    if (state.rawGaps.length > 0) {
+      renderAnalysis();
+    }
+  });
+  elements.toYearInput.addEventListener("input", () => {
+    clearPresetSelection();
+    if (state.rawGaps.length > 0) {
+      renderAnalysis();
+    }
+  });
+  document.querySelectorAll(".preset-pill").forEach((pill) => {
+    pill.addEventListener("click", () => applyPreset(pill.dataset.preset));
+  });
+  elements.calcBtn.addEventListener("click", calculateRating);
+
+  ratingInputs.forEach((input) => {
+    input.addEventListener("input", () => clampRatingInput(input));
+  });
+}
+
+bindEvents();

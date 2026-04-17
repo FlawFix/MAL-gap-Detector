@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "MAL Gap Detector",
-  "version": "1.1",
-  "description": "Detect gaps between completed anime on your MyAnimeList profile.",
+  "name": "MAL Enhancer",
+  "author": "FlawFix",
+  "version": "0.125",
+  "description": "Detect gaps between completed anime, Rating calculator, and more for MAL profiles.",
   "icons": {
     "16": "Icons/16px.png",
     "48": "Icons/48px.png",

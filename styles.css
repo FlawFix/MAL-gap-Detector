@@ -383,21 +383,61 @@ pre:empty {
   background: var(--scrollbar-thumb-hover);
 }
 
-/* ── Rating Calculator ──────────────────────────────────── */
+/* ── Section Dividers & Headings ────────────────────────── */
 
-#rating-divider {
+.section-divider {
   height: 1px;
   background: var(--border-light);
   margin: 16px 0 14px;
 }
 
-#calc-heading {
+.section-heading {
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 12px;
   letter-spacing: -0.2px;
 }
+
+/* ── Live Page Filters ──────────────────────────────────── */
+
+#live-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.filter-actions-row {
+  display: flex;
+  gap: 8px;
+}
+
+.filter-actions-row button {
+  padding: 8px 12px;
+  flex: 1;
+}
+
+.btn-accent {
+  background: var(--accent);
+  color: var(--text-white);
+}
+
+.btn-accent:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--secondary-text);
+  border: 1px solid var(--secondary-border);
+}
+
+.btn-outline:hover:not(:disabled) {
+  background: var(--bg-elevated);
+}
+
+/* ── Rating Calculator ──────────────────────────────────── */
 
 #rating-inputs {
   display: grid;

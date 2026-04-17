@@ -47,4 +47,80 @@
 
   window.addEventListener("scroll", updateVisibility, { passive: true });
   updateVisibility();
+
+  // ── Score Filtering Logic ────────────────────────────────────────
+
+  let activeScoreFilter = null;
+  const ROW_SELECTORS = ".list-table-data .list-table-row, .list-table-data, table.list-table tbody tr, #list-container .list-item";
+
+  function getRowScore(row) {
+    // Attempt to extract the text score
+    const scoreElem = row.querySelector(".data.score, td.score, .score-label, .score .link");
+    if (!scoreElem) return 0;
+    
+    const text = (scoreElem.innerText || scoreElem.textContent || "").trim();
+    if (text === "-" || text === "N/A" || text === "") return 0;
+    
+    const parsed = parseInt(text, 10);
+    return Number.isNaN(parsed) ? 0 : parsed;
+  }
+
+  function applyFilterToRow(row) {
+    if (activeScoreFilter === null) {
+      row.style.display = "";
+      return;
+    }
+    
+    const score = getRowScore(row);
+    row.style.display = (score === activeScoreFilter) ? "" : "none";
+  }
+
+  function applyFilterToAll() {
+    const rows = document.querySelectorAll(ROW_SELECTORS);
+    let visibleCount = 0;
+    rows.forEach(row => {
+      applyFilterToRow(row);
+      // Update numbering for visible rows sequentially
+      if (row.style.display !== "none") {
+        visibleCount++;
+        const numberCell = row.querySelector(".data.number, td.number, .number, .list-table-data .data.number");
+        if (numberCell) {
+          numberCell.textContent = visibleCount;
+        }
+      }
+    });
+  }
+
+  // Listen for popup messages
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === "filterScore") {
+      activeScoreFilter = request.score; // Integer or null
+      applyFilterToAll();
+      sendResponse({ status: "ok" });
+    }
+  });
+
+  // Observe dynamically loaded rows (infinite scroll)
+  const observer = new MutationObserver((mutations) => {
+    if (activeScoreFilter === null) return;
+    
+    // Re-apply filter if structural changes occur on the list
+    let shouldUpdate = false;
+    for (const mutation of mutations) {
+      if (mutation.addedNodes.length > 0) {
+        shouldUpdate = true;
+        break;
+      }
+    }
+    if (shouldUpdate) {
+      applyFilterToAll();
+    }
+  });
+  
+  // Attach observer to a robust parent
+  const listContainer = document.querySelector("#list-container, .list-block") || document.body;
+  if (listContainer) {
+    observer.observe(listContainer, { childList: true, subtree: true });
+  }
+
 })();

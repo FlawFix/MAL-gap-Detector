@@ -153,6 +153,9 @@ const elements = {
   totalEntries: $("#totalEntries"),
   largestGap: $("#largestGap"),
   avgGap: $("#avgGap"),
+  pageScoreInput: $("#pageScore"),
+  applyScoreBtn: $("#applyScoreFilter"),
+  clearScoreBtn: $("#clearScoreFilter"),
   calcBtn: $("#calcRating"),
   ratingResult: $("#rating-result"),
   ratingValue: $("#ratingValue"),
@@ -448,11 +451,44 @@ function applyPreset(preset) {
   }
 }
 
+// ── Live Page Filters ───────────────────────────────────────────────
+
+async function applyLiveScoreFilter() {
+  const rawValue = elements.pageScoreInput.value;
+  if (rawValue === "") {
+    clearLiveScoreFilter();
+    return;
+  }
+
+  const score = Math.max(0, Math.min(10, parseInt(rawValue, 10)));
+  elements.pageScoreInput.value = score; 
+
+  const tab = await getActiveTab();
+  if (tab && isMalAnimelistTab(tab)) {
+    chrome.tabs.sendMessage(tab.id, { action: "filterScore", score });
+    setStatus(`Live page filtered to score: ${score === 0 ? 'Unrated' : score}`, "success");
+  } else {
+    setStatus("Navigate to a MAL anime list page to use live filters.", "error");
+  }
+}
+
+async function clearLiveScoreFilter() {
+  elements.pageScoreInput.value = "";
+  const tab = await getActiveTab();
+  if (tab && isMalAnimelistTab(tab)) {
+    chrome.tabs.sendMessage(tab.id, { action: "filterScore", score: null });
+    setStatus("Live filters cleared.", "info");
+  }
+}
+
 // ── Event Wiring & Init ─────────────────────────────────────────────
 
 function bindEvents() {
   elements.analyzeBtn.addEventListener("click", analyzeCurrentTab);
   elements.downloadBtn.addEventListener("click", downloadReport);
+  
+  elements.applyScoreBtn.addEventListener("click", applyLiveScoreFilter);
+  elements.clearScoreBtn.addEventListener("click", clearLiveScoreFilter);
   elements.minGapInput.addEventListener("input", () => {
     if (state.rawGaps.length > 0) {
       renderAnalysis();
